@@ -30,6 +30,7 @@ import com.baidu.mapapi.model.LatLng;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -217,20 +218,36 @@ public class MainActivity extends AppCompatActivity {
                     String positionChineseInpu ="'" +positionChinese + "'";
                     String ids = ",'" + id + "'";
                     // 3.连接JDBC
+                    String createBrandDatabase = "CREATE TABLE " +"USER_" +id + " like gpsData;";
+                    String checkTable="show tables like \"userbr\"";
+                    // 3.连接JDBC
                     try {
-                        Connection conn = DriverManager.getConnection(url, user, password);
-                        Log.i(TAG, "远程连接成功!");
-                        String sql = "INSERT INTO gpsData(latitionx,latitiony,time,id,positionChinese)"
+                        Connection conn = (Connection)DriverManager.getConnection(url, user, password);
+                        System.out.println( "远程连接成功!");
+
+                        //Toast.makeText(getApplicationContext(),"向gpsData中加入1条数据",Toast.LENGTH_SHORT).show();
+                        Statement stmt = (Statement) conn.createStatement();
+                        ResultSet resultSet=stmt.executeQuery(checkTable);
+                        try {
+                            if (resultSet.next()) {
+                                System.out.println("table exist!");
+                            } else {
+                                if (stmt.executeUpdate(createBrandDatabase) == 0)
+                                    System.out.println("create table success!");
+                            }
+                        }catch (Exception e){
+
+                        }
+                        String sql = "INSERT INTO "+"USER_" +id +"(latitionx,latitiony,time,id,positionChinese)"
                                 + " VALUES (" +positionxs+ ","+posy+", "+"'"+ time+"'" +ids+","+positionChineseInpu+ ")";  // 插入数据的sql语句
 
-                        Statement statement = conn.createStatement();
-                        int count = statement.executeUpdate(sql);
-                        Log.i(TAG,"向gpsData表中加入" + count + "条数据" + positionChineseInpu + "oo" + positionChinese);
-                        //Toast.makeText(getApplicationContext(),"向gpsData中加入1条数据",Toast.LENGTH_SHORT).show();
+                        int count = stmt.executeUpdate(sql);
+                        System.out.println("向user表中加入" + count + "条数据" + positionChineseInpu + "oo" + positionChinese);
                         conn.close();
+
                         return;
                     } catch (SQLException e) {
-                        Log.e(TAG, "远程连接失败!");
+                        System.out.println( "远程连接失败!");
                     }
                 }
             }
